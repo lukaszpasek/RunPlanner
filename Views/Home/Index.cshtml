@@ -23,8 +23,82 @@
             directionsManager = new Microsoft.Maps.Directions.DirectionsManager(map);
             map.addComponent(directionsManager);
         });
-    }
 
+        //displayGPXRoute();
+        GetMap();
+    }
+    function GetMap() {
+        map = new Microsoft.Maps.Map('#bingMap', {});
+
+        //Load the directions module.
+        Microsoft.Maps.loadModule('Microsoft.Maps.Directions', function () {
+            //Create an instance of the directions manager.
+            directionsManager = new Microsoft.Maps.Directions.DirectionsManager(map);
+
+            //Specify where to display the route instructions.
+            directionsManager.setRenderOptions({ itineraryContainer: '#directionsItinerary' });
+
+            //Specify the where to display the input panel
+            directionsManager.showInputPanel('directionsPanel');
+        });
+    }
+    function displayGPXRoute() {
+        // Wygeneruj dane GPX
+        var gpxData = `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+                        <gpx xmlns="http://www.topografix.com/GPX/1/1" creator="www.plotaroute.com" version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+                            <metadata>
+                                <desc>Route created on plotaroute.com</desc>
+                            </metadata>
+                            <trk>
+                                <name>Trasa GPX</name>
+                                <trkseg>
+                                    <trkpt lat="52.228934" lon="21.003457">
+                                        <ele>10</ele>
+                                        <time>2024-01-10T00:00:00Z</time>
+                                    </trkpt>
+                                    <!-- Dodaj kolejne trkpt dla pozostałych punktów z twojego XML -->
+                                </trkseg>
+                            </trk>
+                        </gpx>`;
+
+        // Pobierz współrzędne trasy z GeoJSON
+        var geojson = toGeoJSON.gpx(new DOMParser().parseFromString(gpxData, 'text/xml'));
+        var routeCoordinates = [];
+
+        if (geojson.features && geojson.features.length > 0) {
+            var trkseg = geojson.features[0].properties.coordTimes;
+
+            if (trkseg && trkseg.length > 0) {
+                routeCoordinates = trkseg.map(function (coord) {
+                    return new Microsoft.Maps.Location(coord[1], coord[0]);
+                });
+            }
+        }
+
+        // Dodaj polilinię do mapy
+        var polyline = new Microsoft.Maps.Polyline(routeCoordinates, {
+            strokeColor: 'blue',
+            strokeThickness: 5
+        });
+        map.entities.push(polyline);
+
+        // Dodaj znaczniki dla punktów trasy
+        routeCoordinates.forEach(function (coord, index) {
+            var pin = new Microsoft.Maps.Pushpin(coord, {
+                title: 'Punkt ' + (index + 1)
+            });
+            map.entities.push(pin);
+        });
+
+        // Ustaw punkty początkowy i końcowy w DirectionsManager
+        directionsManager.setRequestOptions({ routeMode: Microsoft.Maps.Directions.RouteMode.driving });
+        directionsManager.clearAll();
+        directionsManager.addWaypoint(new Microsoft.Maps.Directions.Waypoint({ location: routeCoordinates[0] }));
+        directionsManager.addWaypoint(new Microsoft.Maps.Directions.Waypoint({ location: routeCoordinates[routeCoordinates.length - 1] }));
+
+        // Wygeneruj trasę
+        directionsManager.calculateDirections();
+    }
     function generateGPX() {
         startLocation = document.getElementById('startLocation').value;
         endLocation = document.getElementById('endLocation').value;
