@@ -3,36 +3,133 @@
 }
 
 <h2>Mapa Bing</h2>
-<div id="bingMap" style="height: 100vh; width: 100%;"></div>
+<div id="bingMap" style="height: 600px; width: 100%;"></div>
 
 <script type="text/javascript">
+    var map;
+    var startLocation;
+    var endLocation;
+    var directionsManager;
+
     function loadMap() {
-        var map = new Microsoft.Maps.Map(document.getElementById('bingMap'), {
+        map = new Microsoft.Maps.Map(document.getElementById('bingMap'), {
             credentials: 'AkOaQu2DLHmVfkRSMITNik0HozZniajnvTQXRtDJsthVQwzJs8bZPtdEUGraXsHy',
             center: new Microsoft.Maps.Location(0, 0),
             zoom: 2
         });
 
+        // Inicjalizacja DirectionsManager
+        Microsoft.Maps.loadModule('Microsoft.Maps.Directions', function () {
+            directionsManager = new Microsoft.Maps.Directions.DirectionsManager(map);
+            map.addComponent(directionsManager);
+        });
+    }
+
+    function generateGPX() {
+        startLocation = document.getElementById('startLocation').value;
+        endLocation = document.getElementById('endLocation').value;
+
+        if (startLocation && endLocation) {
+            // Uzyskaj współrzędne geograficzne dla miejscowości początkowej
+            geocodeLocation(startLocation, function (startCoords) {
+                // Uzyskaj współrzędne geograficzne dla miejscowości końcowej
+                geocodeLocation(endLocation, function (endCoords) {
+                    // Usuń poprzednie punkty i trasę z mapy
+                    map.entities.clear();
+
+                    // Generuj trasę GPX
+                    var gpxData = generateGPXData(startCoords, endCoords);
+
+                    // Wyswietl dane GPX (możesz je wysłać na serwer lub wyświetlić w konsoli)
+                    console.log(gpxData);
+
+                    // Pobierz współrzędne trasy z GeoJSON
+                    var geojson = toGeoJSON.gpx(new DOMParser().parseFromString(gpxData, 'text/xml'));
+                    var routeCoordinates = geojson.features[0].geometry.coordinates.map(function (coord) {
+                        return new Microsoft.Maps.Location(coord[1], coord[0]);
+                    });
+
+                    // Dodaj znaczniki dla punktów trasy
+                    routeCoordinates.forEach(function (coord, index) {
+                        var pin = new Microsoft.Maps.Pushpin(coord, {
+                            title: 'Punkt ' + (index + 1)
+                        });
+                        map.entities.push(pin);
+                    });
+
+                    // Ustaw punkty początkowy i końcowy w DirectionsManager
+                    directionsManager.setRequestOptions({ routeMode: Microsoft.Maps.Directions.RouteMode.driving });
+                    directionsManager.clearAll();
+                    directionsManager.addWaypoint(new Microsoft.Maps.Directions.Waypoint({ location: startCoords }));
+                    directionsManager.addWaypoint(new Microsoft.Maps.Directions.Waypoint({ location: endCoords }));
+
+                    // Wygeneruj trasę
+                    directionsManager.calculateDirections();
+                });
+            });
+        } else {
+            alert('Wprowadź miejscowość początkową i końcową.');
+        }
+    }
+
+    function geocodeLocation(location, callback) {
+        var searchManager = new Microsoft.Maps.Search.SearchManager(map);
+        var requestOptions = {
+            bounds: map.getBounds(),
+            where: location,
+            callback: function (result) {
+                if (result && result.results && result.results.length > 0) {
+                    var coords = {
+                        lat: result.results[0].location.latitude,
+                        lon: result.results[0].location.longitude
+                    };
+                    callback(coords);
+                } else {
+                    alert('Nie udało się uzyskać współrzędnych dla: ' + location);
+                }
+            }
+        };
+        searchManager.geocode(requestOptions);
+    }
+
+    function generateGPXData(startCoords, endCoords) {
         var gpxData = `<?xml version="1.0" encoding="UTF-8"?>
                 <gpx version="1.1" creator="Your Application">
-                    <!-- Tutaj umieść zawartość pliku GPX -->
+                    <trk>
+                        <name>Trasa z ${startLocation} do ${endLocation}</name>
+                        <trkseg>
+                            <trkpt lat="${startCoords.lat}" lon="${startCoords.lon}">
+                                <ele>10</ele>
+                                <time>${getCurrentTime()}</time>
+                            </trkpt>
+                            <trkpt lat="${endCoords.lat}" lon="${endCoords.lon}">
+                                <ele>10</ele>
+                                <time>${getCurrentTime()}</time>
+                            </trkpt>
+                        </trkseg>
+                    </trk>
                 </gpx>`;
 
-        var geojson = toGeoJSON.gpx(new DOMParser().parseFromString(gpxData, 'text/xml'));
+        return gpxData;
+    }
 
-
-        var routeCoordinates = geojson.features[0].geometry.coordinates.map(function (coord) {
-            return new Microsoft.Maps.Location(coord[1], coord[0]);
-        });
-
-        var routeLine = new Microsoft.Maps.Polyline(routeCoordinates, {
-            strokeColor: 'blue',
-            strokeThickness: 3
-        });
-
-        map.entities.push(routeLine);
+    function getCurrentTime() {
+        var now = new Date();
+        return now.toISOString();
     }
 
     // Wywołaj funkcję loadMap po załadowaniu strony
     window.onload = loadMap;
 </script>
+
+<h2>Formularz Trasy GPX z Bing Maps</h2>
+
+<form id="routeForm">
+    <label for="startLocation">Miejscowość początkowa:</label>
+    <input type="text" id="startLocation" name="startLocation" required>
+
+    <label for="endLocation">Miejscowość końcowa:</label>
+    <input type="text" id="endLocation" name="endLocation" required>
+
+    <button type="button" onclick="generateGPX()">Generuj trasę GPX</button>
+</form>
