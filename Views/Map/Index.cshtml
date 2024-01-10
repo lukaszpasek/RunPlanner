@@ -1,0 +1,20 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Mapa Bing</h2>
+<div id="bingMap" style="height: 400px;"></div>
+
+<script type="text/javascript">
+    function loadMap() {
+        var map = new Microsoft.Maps.Map(document.getElementById('bingMap'), {
+            credentials: 'AkOaQu2DLHmVfkRSMITNik0HozZniajnvTQXRtDJsthVQwzJs8bZPtdEUGraXsHy',
+            center: new Microsoft.Maps.Location(0, 0),
+            zoom: 2
+        });
+
+        // Dodaj dodatkową logikę mapy, jeśli jest potrzebna
+    }
+    // Wywołaj funkcję loadMap po załadowaniu strony
+    window.onload = loadMap;
+</script>

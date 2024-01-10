@@ -1,0 +1,38 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Mapa Bing</h2>
+<div id="bingMap" style="height: 100vh; width: 100%;"></div>
+
+<script type="text/javascript">
+    function loadMap() {
+        var map = new Microsoft.Maps.Map(document.getElementById('bingMap'), {
+            credentials: 'AkOaQu2DLHmVfkRSMITNik0HozZniajnvTQXRtDJsthVQwzJs8bZPtdEUGraXsHy',
+            center: new Microsoft.Maps.Location(0, 0),
+            zoom: 2
+        });
+
+        var gpxData = `<?xml version="1.0" encoding="UTF-8"?>
+                <gpx version="1.1" creator="Your Application">
+                    <!-- Tutaj umieść zawartość pliku GPX -->
+                </gpx>`;
+
+        var geojson = toGeoJSON.gpx(new DOMParser().parseFromString(gpxData, 'text/xml'));
+
+
+        var routeCoordinates = geojson.features[0].geometry.coordinates.map(function (coord) {
+            return new Microsoft.Maps.Location(coord[1], coord[0]);
+        });
+
+        var routeLine = new Microsoft.Maps.Polyline(routeCoordinates, {
+            strokeColor: 'blue',
+            strokeThickness: 3
+        });
+
+        map.entities.push(routeLine);
+    }
+
+    // Wywołaj funkcję loadMap po załadowaniu strony
+    window.onload = loadMap;
+</script>
