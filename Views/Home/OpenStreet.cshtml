@@ -1,0 +1,159 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Display GeoJSON Route on OpenStreetMap</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+     <style>
+        #map {
+            height: 720px;
+            width: 1500px;
+        }
+
+        #menu {
+            margin-top: 10px;
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+
+        #menu a {
+            margin-right: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #000;
+        }
+
+        #menu a.active {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <ul id="menu">
+        <li><a onclick="changeURL('/Home/Index')">Home/Index</a></li>
+        <li><a onclick="changeURL('/Home/Sample')">Home/Sample</a></li>
+        <li><a onclick="changeURL('/Home/GoogleMaps')">Home/GoogleMaps</a></li>
+        <li><a onclick="changeURL('/Home/OpenStreet')">Home/OpenStreet</a></li>
+    </ul>
+    <div id="map"></div>
+
+    <script>
+        var map;
+        var geoJsonLayer;
+
+        function initMap() {
+            map = L.map('map').setView([52.23, 21], 16);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            var geoJsonData = {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "properties": {},
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [
+                                [21.003457, 52.228934],
+                                [21.005293, 52.229363],
+                                [21.005444, 52.229385],
+                                [21.005202, 52.229535],
+                                [21.001717, 52.228755],
+                                [21.001738, 52.228771],
+                                [21.000634, 52.230362],
+                                [20.999054, 52.232836],
+                                [20.998282, 52.232636],
+                                [20.99804, 52.232797],
+                                [20.99804, 52.232797]
+                            ]
+                        }
+                    },
+                    {
+                        "type": "Feature",
+                        "properties": {
+                            "time": "2024-01-10T03:10:04",
+                            "name": "Finish Point",
+                            "cmt": "Additional Point",
+                            "desc": "Additional Point",
+                            "sym": "Flag, Red",
+                            "type": "Waypoint"
+                        },
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [21.005, 52.23]
+                        }
+                    }
+                ]
+            };
+
+            displayGeoJsonRoute(geoJsonData);
+        }
+
+        function displayGeoJsonRoute(geoJsonData) {
+            geoJsonLayer = L.geoJSON(geoJsonData, {
+                style: {
+                    color: '#0000FF',
+                    weight: 6
+                },
+                pointToLayer: function (feature, latlng) {
+                    var properties = feature.properties;
+                    var iconUrl = properties.sym === 'Flag, Red' ? 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' : 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+
+                    return L.marker(latlng, {
+                        title: properties.name || '',
+                        icon: L.icon({
+                            iconUrl: iconUrl,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 32],
+                            popupAnchor: [0, -32]
+                        })
+                    });
+                },
+                onEachFeature: function (feature, layer) {
+                    var properties = feature.properties;
+
+                    var popupContent = 'Time: ' + properties.time + '<br>' +
+                        'Description: ' + properties.desc + '<br>' +
+                        'Comment: ' + properties.cmt + '<br>' +
+                        'Symbol: ' + properties.sym + '<br>' +
+                        'Type: ' + properties.type;
+
+                    layer.bindPopup(popupContent);
+
+                    layer.on('mouseover', function () {
+                        layer.openPopup();
+                    });
+
+                    layer.on('mouseout', function () {
+                        layer.closePopup();
+                    });
+                }
+            }).addTo(map);
+
+            map.fitBounds(geoJsonLayer.getBounds());
+        }
+        function changeURL(url) {
+            var links = document.querySelectorAll('#menu a');
+            links.forEach(function (link) {
+                link.classList.remove('active');
+            });
+
+            var activeLink = document.querySelector(`#menu a[href="${url}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+
+            window.location.href = url;
+        }
+        window.onload = initMap;
+    </script>
+</body>
+
+</html>

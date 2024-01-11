@@ -1,41 +1,35 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <title>Display GeoJSON Route on Bing Maps</title>
-    <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=AkOaQu2DLHmVfkRSMITNik0HozZniajnvTQXRtDJsthVQwzJs8bZPtdEUGraXsHy'></script>
+    <title>Display GeoJSON Route on Google Maps</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBkEIKmZHTnRUeSHBllmuAwRg0A3PpzORc&callback=initMap" async defer></script>
     <style>
         #map {
             height: 720px;
             width: 1500px;
         }
-
-        #menu a.active {
-            font-weight: bold; /* Lub inny styl oznaczający aktywny link */
-        }
     </style>
-    <script src="~/Views/Shared/Scripts/Common.js"></script>
 </head>
-
 <body>
     <ul id="menu">
-        <li><a id="indexLink" onclick="changeURL('/Home/Index')">Home/Index</a></li>
-        <li><a id="sampleLink" onclick="changeURL('/Home/Sample')">Home/Sample</a></li>
-        <li><a id="googleMapsLink" onclick="changeURL('/Home/GoogleMaps')">Home/GoogleMaps</a></li>
-        <li><a id="openStreetLink" onclick="changeURL('/Home/OpenStreet')">Home/OpenStreet</a></li>
+        <li><a onclick="changeURL('/Home/Index')">Home/Index</a></li>
+        <li><a onclick="changeURL('/Home/Sample')">Home/Sample</a></li>
+        <li><a onclick="changeURL('/Home/GoogleMaps')">Home/GoogleMaps</a></li>
+        <li><a onclick="changeURL('/Home/OpenStreet')">Home/OpenStreet</a></li>
     </ul>
     <div id="map"></div>
 
-    <script type='text/javascript'>
+    <script>
         var map;
-        var infobox;
+        var infowindow;
 
-        function loadMap() {
-            map = new Microsoft.Maps.Map(document.getElementById('map'), {
-                credentials: 'AkOaQu2DLHmVfkRSMITNik0HozZniajnvTQXRtDJsthVQwzJs8bZPtdEUGraXsHy',
-                center: new Microsoft.Maps.Location(52.23, 21),
-                zoom: 14
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 16,
+                center: { lat: 52.23, lng: 21 }, // Początkowe współrzędne
+                mapTypeId: 'terrain',
+                disableDefaultUI: true
             });
 
             var geoJsonData = {
@@ -84,59 +78,60 @@
 
         function displayGeoJsonRoute(geoJsonData) {
             var coordinates = geoJsonData.features[0].geometry.coordinates.map(function (coord) {
-                return new Microsoft.Maps.Location(coord[1], coord[0]);
+                return { lat: parseFloat(coord[1]), lng: parseFloat(coord[0]) };
             });
 
             // Dodaj linię trasy
-            var routeLine = new Microsoft.Maps.Polyline(coordinates, {
-                strokeColor: 'blue',
-                strokeThickness: 8
+            var routeLine = new google.maps.Polyline({
+                path: coordinates,
+                geodesic: true,
+                strokeColor: '#0000FF',
+                strokeOpacity: 1.0,
+                strokeWeight: 6
             });
-            map.entities.push(routeLine);
+            routeLine.setMap(map);
 
-            // Dodaj znaczniki punktów z infoboxami
+            // Dodaj znaczniki punktów z infowindowami
             for (var i = 0; i < geoJsonData.features.length; i++) {
                 var geometry = geoJsonData.features[i].geometry;
                 var properties = geoJsonData.features[i].properties;
 
-                var location = new Microsoft.Maps.Location(geometry.coordinates[1], geometry.coordinates[0]);
-                var marker = new Microsoft.Maps.Pushpin(location, {
+                var marker = new google.maps.Marker({
+                    position: { lat: parseFloat(geometry.coordinates[1]), lng: parseFloat(geometry.coordinates[0]) },
+                    map: map,
                     title: properties.name || '',
-                    color: properties.sym === 'Flag, Red' ? 'red' : 'blue'  // Kolor znacznika
+                    icon: properties.sym === 'Flag, Red' ? 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' : 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
                 });
 
-                // Dodaj infobox z właściwościami
-                var infoboxOptions = {
-                    title: properties.name || '',
-                    description: 'Time: ' + properties.time + '<br>' +
+                infowindow = new google.maps.InfoWindow({
+                    content: 'Time: ' + properties.time + '<br>' +
                         'Description: ' + properties.desc + '<br>' +
                         'Comment: ' + properties.cmt + '<br>' +
                         'Symbol: ' + properties.sym + '<br>' +
                         'Type: ' + properties.type
-                };
-                infobox = new Microsoft.Maps.Infobox(location, infoboxOptions);
-
-                map.entities.push(marker);
-                map.entities.push(infobox);
-
-                // Dodaj obsługę zdarzenia hover
-                Microsoft.Maps.Events.addHandler(marker, 'mouseover', function (args) {
-                    infobox.setOptions({ visible: true });
                 });
 
-                // Dodaj obsługę zdarzenia mouseout (usuwa infobox po opuszczeniu znacznika)
-                Microsoft.Maps.Events.addHandler(marker, 'mouseout', function () {
-                    infobox.setOptions({ visible: false });
-                });
+                // Utwórz funkcję domknięcia dla każdego markeru
+                (function (marker, infowindow) {
+                    marker.addListener('mouseover', function () {
+                        infowindow.open(map, marker);
+                    });
+
+                    marker.addListener('mouseout', function () {
+                        infowindow.close();
+                    });
+                })(marker, infowindow);
             }
 
             // Centruj mapę na trasie
-            var boundingBox = Microsoft.Maps.LocationRect.fromLocations(coordinates);
-            map.setView({ bounds: boundingBox });
+            var bounds = new google.maps.LatLngBounds();
+            coordinates.forEach(function (coordinate) {
+                bounds.extend(coordinate);
+            });
+            map.fitBounds(bounds);
         }
 
-        window.onload = loadMap;
+        window.onload = initMap;
     </script>
 </body>
-
 </html>

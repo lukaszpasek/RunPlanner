@@ -28,6 +28,16 @@ namespace RunPlanner.Controllers
             return View();
         }
 
+        public IActionResult GoogleMaps()
+        {
+            return View();
+        }
+
+        public IActionResult OpenStreet()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
