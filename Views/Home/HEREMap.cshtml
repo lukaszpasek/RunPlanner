@@ -17,16 +17,36 @@
             height: 720px;
             width: 1500px;
         }
+
+        #menu {
+            margin-top: 10px;
+            list-style: none;
+            padding: 0;
+            text-align: left;
+        }
+
+            #menu a {
+                margin-right: 10px;
+                cursor: pointer;
+                text-decoration: none;
+                color: #000;
+            }
+
+                #menu a.active {
+                    font-weight: bold;
+                }
     </style>
 </head>
 
 <body>
+    <app-menu></app-menu>
     <div id="map"></div>
 
     <script>
         var map;
         var routeGroup;
-
+        var bubble;
+        var ui;
         function initMap() {
             // Inicjalizacja platformy HERE Maps
             var platform = new H.service.Platform({
@@ -44,7 +64,7 @@
             var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
 
             // Dodaj kontrolki do mapy
-            var ui = H.ui.UI.createDefault(map, platform.createDefaultLayers());
+            ui = H.ui.UI.createDefault(map, platform.createDefaultLayers());
 
             // Utwórz grupę dla trasy
             routeGroup = new H.map.Group();
@@ -112,6 +132,22 @@
                 lat: geoJsonData.features[1].geometry.coordinates[1],
                 lng: geoJsonData.features[1].geometry.coordinates[0]
             });
+
+            // Dodaj efekt hover z opisem
+            finishPoint.addEventListener('pointerenter', function (event) {
+                var coords = map.screenToGeo(event.currentPointer.viewportX, event.currentPointer.viewportY);
+                bubble = new H.ui.InfoBubble(coords, {
+                    content: 'Description: ' + geoJsonData.features[1].properties.desc
+                });
+                ui.addBubble(bubble);
+            });
+
+            finishPoint.addEventListener('pointerleave', function () {
+                if (bubble) {
+                    ui.removeBubble(bubble);
+                }
+            });
+
             map.addObject(finishPoint);
 
             // Dostosuj widok do trasy i punktu końcowego
@@ -119,7 +155,19 @@
                 bounds: routeGroup.getBoundingBox()
             });
         }
+        function changeURL(url) {
+            var links = document.querySelectorAll('#menu a');
+            links.forEach(function (link) {
+                link.classList.remove('active');
+            });
 
+            var activeLink = document.querySelector(`#menu a[href="${url}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+
+            window.location.href = url;
+        }
         window.onload = initMap;
     </script>
 </body>

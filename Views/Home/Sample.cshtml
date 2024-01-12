@@ -11,9 +11,23 @@
             width: 1500px;
         }
 
-        #menu a.active {
-            font-weight: bold; /* Lub inny styl oznaczający aktywny link */
+        #menu {
+            margin-top: 10px;
+            list-style: none;
+            padding: 0;
+            text-align: left;
         }
+
+            #menu a {
+                margin-right: 10px;
+                cursor: pointer;
+                text-decoration: none;
+                color: #000;
+            }
+
+                #menu a.active {
+                    font-weight: bold;
+                }
     </style>
     <script src="~/Views/Shared/Scripts/Common.js"></script>
 </head>
@@ -134,7 +148,19 @@
             var boundingBox = Microsoft.Maps.LocationRect.fromLocations(coordinates);
             map.setView({ bounds: boundingBox });
         }
+        function changeURL(url) {
+            var links = document.querySelectorAll('#menu a');
+            links.forEach(function (link) {
+                link.classList.remove('active');
+            });
 
+            var activeLink = document.querySelector(`#menu a[href="${url}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+
+            window.location.href = url;
+        }
         window.onload = loadMap;
     </script>
 </body>
