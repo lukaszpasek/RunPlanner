@@ -5,40 +5,10 @@
     <meta charset="UTF-8">
     <title>Display GeoJSON Route on Bing Maps</title>
     <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=AkOaQu2DLHmVfkRSMITNik0HozZniajnvTQXRtDJsthVQwzJs8bZPtdEUGraXsHy'></script>
-    <style>
-        #map {
-            height: 720px;
-            width: 1500px;
-        }
-
-        #menu {
-            margin-top: 10px;
-            list-style: none;
-            padding: 0;
-            text-align: left;
-        }
-
-            #menu a {
-                margin-right: 10px;
-                cursor: pointer;
-                text-decoration: none;
-                color: #000;
-            }
-
-                #menu a.active {
-                    font-weight: bold;
-                }
-    </style>
-    <script src="~/Views/Shared/Scripts/Common.js"></script>
 </head>
 
 <body>
-    <ul id="menu">
-        <li><a id="indexLink" onclick="changeURL('/Home/Index')">Home/Index</a></li>
-        <li><a id="sampleLink" onclick="changeURL('/Home/Sample')">Home/Sample</a></li>
-        <li><a id="googleMapsLink" onclick="changeURL('/Home/GoogleMaps')">Home/GoogleMaps</a></li>
-        <li><a id="openStreetLink" onclick="changeURL('/Home/OpenStreet')">Home/OpenStreet</a></li>
-    </ul>
+    @Html.Partial("~/Views/Shared/_Menu.cshtml")
     <div id="map"></div>
 
     <script type='text/javascript'>
@@ -49,7 +19,7 @@
             map = new Microsoft.Maps.Map(document.getElementById('map'), {
                 credentials: 'AkOaQu2DLHmVfkRSMITNik0HozZniajnvTQXRtDJsthVQwzJs8bZPtdEUGraXsHy',
                 center: new Microsoft.Maps.Location(52.23, 21),
-                zoom: 14
+                zoom: 16
             });
 
             var geoJsonData = {
@@ -147,19 +117,6 @@
             // Centruj mapę na trasie
             var boundingBox = Microsoft.Maps.LocationRect.fromLocations(coordinates);
             map.setView({ bounds: boundingBox });
-        }
-        function changeURL(url) {
-            var links = document.querySelectorAll('#menu a');
-            links.forEach(function (link) {
-                link.classList.remove('active');
-            });
-
-            var activeLink = document.querySelector(`#menu a[href="${url}"]`);
-            if (activeLink) {
-                activeLink.classList.add('active');
-            }
-
-            window.location.href = url;
         }
         window.onload = loadMap;
     </script>

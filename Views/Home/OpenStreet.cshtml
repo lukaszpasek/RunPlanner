@@ -6,39 +6,10 @@
     <title>Display GeoJSON Route on OpenStreetMap</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-     <style>
-        #map {
-            height: 720px;
-            width: 1500px;
-        }
-
-        #menu {
-            margin-top: 10px;
-            list-style: none;
-            padding: 0;
-            text-align: left;
-        }
-
-        #menu a {
-            margin-right: 10px;
-            cursor: pointer;
-            text-decoration: none;
-            color: #000;
-        }
-
-        #menu a.active {
-            font-weight: bold;
-        }
-    </style>
 </head>
 
 <body>
-    <ul id="menu">
-        <li><a onclick="changeURL('/Home/Index')">Home/Index</a></li>
-        <li><a onclick="changeURL('/Home/Sample')">Home/Sample</a></li>
-        <li><a onclick="changeURL('/Home/GoogleMaps')">Home/GoogleMaps</a></li>
-        <li><a onclick="changeURL('/Home/OpenStreet')">Home/OpenStreet</a></li>
-    </ul>
+    @Html.Partial("~/Views/Shared/_Menu.cshtml")
     <div id="map"></div>
 
     <script>
@@ -138,19 +109,6 @@
             }).addTo(map);
 
             map.fitBounds(geoJsonLayer.getBounds());
-        }
-        function changeURL(url) {
-            var links = document.querySelectorAll('#menu a');
-            links.forEach(function (link) {
-                link.classList.remove('active');
-            });
-
-            var activeLink = document.querySelector(`#menu a[href="${url}"]`);
-            if (activeLink) {
-                activeLink.classList.add('active');
-            }
-
-            window.location.href = url;
         }
         window.onload = initMap;
     </script>

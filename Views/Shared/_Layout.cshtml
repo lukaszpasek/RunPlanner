@@ -10,6 +10,12 @@
     <script type="text/javascript" src="https://www.bing.com/api/maps/mapcontrol?callback=loadMap" async defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/togeojson/0.15.0/togeojson.min.js"></script>
     <script type="text/javascript" src="https://www.bing.com/api/maps/mapcontrol?key=AkOaQu2DLHmVfkRSMITNik0HozZniajnvTQXRtDJsthVQwzJs8bZPtdEUGraXsHy" async defer></script>
+    <!-- Bootstrap CSS i JS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
     <script type="text/javascript">
         function loadMap() {
             // Tutaj możesz dodać kod do załadowania mapy Bing
@@ -28,10 +34,28 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Importuj trasę</a>
+                            @model GpxTrackViewModel
+                            <form asp-controller="Home" asp-action="AddGpxTrack" method="post">
+                                <div class="form-group">
+                                    <label asp-for="Name">Name:</label>
+                                    <input asp-for="Name" class="form-control" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                                <!-- Dodaj inne pola formularza na podstawie potrzeb -->
+                                <button type="submit" class="btn btn-primary">Add Track</button>
+                            </form>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link text-dark dropdown-toggle" href="#" id="privacyDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                API do wyświetlenia trasy
+                            </a>
+                            <div class="dropdown-menu" style="z-index: 10000;" aria-labelledby="privacyDropdown">
+                                <a class="dropdown-item" href="/Home/HEREMap">HEREMap</a>
+                                <a class="dropdown-item" href="/Home/BingMap">BingMap</a>
+                                <a class="dropdown-item" href="/Home/GoogleMaps">GoogleMaps</a>
+                                <a class="dropdown-item" href="/Home/OpenStreet">OpenStreet</a>
+                            </div>
                         </li>
                     </ul>
                 </div>

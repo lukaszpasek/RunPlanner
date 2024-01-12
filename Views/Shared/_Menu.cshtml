@@ -1,0 +1,42 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+
+<div id="menu">
+    <h4>Załadowana trasa:</h4>
+    <li>Test1</li>
+    <h4 style="margin-top:10px;">Lista tras:</h4>
+    <ul>
+        <li><a onclick="changeURL('/Home/HEREMap')">Home/HEREMap</a></li>
+        <li><a onclick="changeURL('/Home/BingMap')">Home/BingMap</a></li>
+        <li><a onclick="changeURL('/Home/GoogleMaps')">Home/GoogleMaps</a></li>
+        <li><a onclick="changeURL('/Home/OpenStreet')">Home/OpenStreet</a></li>
+    </ul>
+</div>
+
+
+
+
+
+
+
+
+
+<script>
+    function changeURL(url) {
+        var links = document.querySelectorAll('#menu a');
+        links.forEach(function (link) {
+            link.classList.remove('active');
+        });
+
+        var activeLink = document.querySelector(`#menu a[href="${url}"]`);
+        if (activeLink) {
+            activeLink.classList.add('active');
+        }
+
+        window.location.href = url;
+    }
+</script>

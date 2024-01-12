@@ -4,20 +4,9 @@
     <meta charset="UTF-8">
     <title>Display GeoJSON Route on Google Maps</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBkEIKmZHTnRUeSHBllmuAwRg0A3PpzORc&callback=initMap" async defer></script>
-    <style>
-        #map {
-            height: 720px;
-            width: 1500px;
-        }
-    </style>
 </head>
 <body>
-    <ul id="menu">
-        <li><a onclick="changeURL('/Home/Index')">Home/Index</a></li>
-        <li><a onclick="changeURL('/Home/Sample')">Home/Sample</a></li>
-        <li><a onclick="changeURL('/Home/GoogleMaps')">Home/GoogleMaps</a></li>
-        <li><a onclick="changeURL('/Home/OpenStreet')">Home/OpenStreet</a></li>
-    </ul>
+    @Html.Partial("~/Views/Shared/_Menu.cshtml")
     <div id="map"></div>
 
     <script>
