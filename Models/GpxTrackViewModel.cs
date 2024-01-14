@@ -1,12 +1,12 @@
-﻿namespace RunPlanner.Models
+﻿using System;
+
+namespace RunPlanner.Models
 {
     public class GpxTrackViewModel
     {
-        public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public DateTime CreatedAt { get; set; }
         public string GpxData { get; set; }
-        // Dodaj inne właściwości trasy GPX, które chcesz zebrać z formularza
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow; // Set default value to current UTC time
     }
 }

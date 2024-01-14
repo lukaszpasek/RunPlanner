@@ -18,32 +18,23 @@
             zoom: 2
         });
 
-        // Inicjalizacja DirectionsManager
         Microsoft.Maps.loadModule('Microsoft.Maps.Directions', function () {
             directionsManager = new Microsoft.Maps.Directions.DirectionsManager(map);
             map.addComponent(directionsManager);
         });
 
-        //displayGPXRoute();
         GetMap();
     }
     function GetMap() {
         map = new Microsoft.Maps.Map('#bingMap', {});
 
-        //Load the directions module.
         Microsoft.Maps.loadModule('Microsoft.Maps.Directions', function () {
-            //Create an instance of the directions manager.
             directionsManager = new Microsoft.Maps.Directions.DirectionsManager(map);
-
-            //Specify where to display the route instructions.
             directionsManager.setRenderOptions({ itineraryContainer: '#directionsItinerary' });
-
-            //Specify the where to display the input panel
             directionsManager.showInputPanel('directionsPanel');
         });
     }
     function displayGPXRoute() {
-        // Wygeneruj dane GPX
         var gpxData = `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
                         <gpx xmlns="http://www.topografix.com/GPX/1/1" creator="www.plotaroute.com" version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
                             <metadata>
@@ -60,8 +51,6 @@
                                 </trkseg>
                             </trk>
                         </gpx>`;
-
-        // Pobierz współrzędne trasy z GeoJSON
         var geojson = toGeoJSON.gpx(new DOMParser().parseFromString(gpxData, 'text/xml'));
         var routeCoordinates = [];
 
@@ -75,28 +64,23 @@
             }
         }
 
-        // Dodaj polilinię do mapy
         var polyline = new Microsoft.Maps.Polyline(routeCoordinates, {
             strokeColor: 'blue',
             strokeThickness: 5
         });
         map.entities.push(polyline);
 
-        // Dodaj znaczniki dla punktów trasy
         routeCoordinates.forEach(function (coord, index) {
             var pin = new Microsoft.Maps.Pushpin(coord, {
                 title: 'Punkt ' + (index + 1)
             });
             map.entities.push(pin);
         });
-
-        // Ustaw punkty początkowy i końcowy w DirectionsManager
         directionsManager.setRequestOptions({ routeMode: Microsoft.Maps.Directions.RouteMode.driving });
         directionsManager.clearAll();
         directionsManager.addWaypoint(new Microsoft.Maps.Directions.Waypoint({ location: routeCoordinates[0] }));
         directionsManager.addWaypoint(new Microsoft.Maps.Directions.Waypoint({ location: routeCoordinates[routeCoordinates.length - 1] }));
 
-        // Wygeneruj trasę
         directionsManager.calculateDirections();
     }
     function generateGPX() {
@@ -104,26 +88,19 @@
         endLocation = document.getElementById('endLocation').value;
 
         if (startLocation && endLocation) {
-            // Uzyskaj współrzędne geograficzne dla miejscowości początkowej
             geocodeLocation(startLocation, function (startCoords) {
-                // Uzyskaj współrzędne geograficzne dla miejscowości końcowej
                 geocodeLocation(endLocation, function (endCoords) {
-                    // Usuń poprzednie punkty i trasę z mapy
                     map.entities.clear();
 
-                    // Generuj trasę GPX
                     var gpxData = generateGPXData(startCoords, endCoords);
 
-                    // Wyswietl dane GPX (możesz je wysłać na serwer lub wyświetlić w konsoli)
                     console.log(gpxData);
 
-                    // Pobierz współrzędne trasy z GeoJSON
                     var geojson = toGeoJSON.gpx(new DOMParser().parseFromString(gpxData, 'text/xml'));
                     var routeCoordinates = geojson.features[0].geometry.coordinates.map(function (coord) {
                         return new Microsoft.Maps.Location(coord[1], coord[0]);
                     });
 
-                    // Dodaj znaczniki dla punktów trasy
                     routeCoordinates.forEach(function (coord, index) {
                         var pin = new Microsoft.Maps.Pushpin(coord, {
                             title: 'Punkt ' + (index + 1)
@@ -131,13 +108,11 @@
                         map.entities.push(pin);
                     });
 
-                    // Ustaw punkty początkowy i końcowy w DirectionsManager
                     directionsManager.setRequestOptions({ routeMode: Microsoft.Maps.Directions.RouteMode.driving });
                     directionsManager.clearAll();
                     directionsManager.addWaypoint(new Microsoft.Maps.Directions.Waypoint({ location: startCoords }));
                     directionsManager.addWaypoint(new Microsoft.Maps.Directions.Waypoint({ location: endCoords }));
 
-                    // Wygeneruj trasę
                     directionsManager.calculateDirections();
                 });
             });
@@ -192,7 +167,6 @@
         return now.toISOString();
     }
 
-    // Wywołaj funkcję loadMap po załadowaniu strony
     window.onload = loadMap;
 </script>
 

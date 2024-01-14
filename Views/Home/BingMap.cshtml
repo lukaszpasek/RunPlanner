@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var geoJsonData = ViewData["GeoJSONData"];
+}
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -14,71 +18,29 @@
     <script type='text/javascript'>
         var map;
         var infobox;
-
+        observeChanges(window, 'geoJsonData', loadMap);
         function loadMap() {
             map = new Microsoft.Maps.Map(document.getElementById('map'), {
                 credentials: 'AkOaQu2DLHmVfkRSMITNik0HozZniajnvTQXRtDJsthVQwzJs8bZPtdEUGraXsHy',
                 center: new Microsoft.Maps.Location(52.23, 21),
                 zoom: 16
             });
-
-            var geoJsonData = {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "type": "Feature",
-                        "properties": {},
-                        "geometry": {
-                            "type": "LineString",
-                            "coordinates": [
-                                [21.003457, 52.228934],
-                                [21.005293, 52.229363],
-                                [21.005444, 52.229385],
-                                [21.005202, 52.229535],
-                                [21.001717, 52.228755],
-                                [21.001738, 52.228771],
-                                [21.000634, 52.230362],
-                                [20.999054, 52.232836],
-                                [20.998282, 52.232636],
-                                [20.99804, 52.232797],
-                                [20.99804, 52.232797]
-                            ]
-                        }
-                    },
-                    {
-                        "type": "Feature",
-                        "properties": {
-                            "time": "2024-01-10T03:10:04",
-                            "name": "Finish Point",
-                            "cmt": "Additional Point",
-                            "desc": "Additional Point",
-                            "sym": "Flag, Red",
-                            "type": "Waypoint"
-                        },
-                        "geometry": {
-                            "type": "Point",
-                            "coordinates": [21.005, 52.23]
-                        }
-                    }
-                ]
-            };
-
+            var geoJsonData = @Html.Raw(Json.Serialize(geoJsonData));
             displayGeoJsonRoute(geoJsonData);
         }
 
         function displayGeoJsonRoute(geoJsonData) {
+            map.entities.clear();
+
             var coordinates = geoJsonData.features[0].geometry.coordinates.map(function (coord) {
                 return new Microsoft.Maps.Location(coord[1], coord[0]);
             });
 
-            // Dodaj linię trasy
             var routeLine = new Microsoft.Maps.Polyline(coordinates, {
                 strokeColor: 'blue',
                 strokeThickness: 8
             });
             map.entities.push(routeLine);
-
-            // Dodaj znaczniki punktów z infoboxami
             for (var i = 0; i < geoJsonData.features.length; i++) {
                 var geometry = geoJsonData.features[i].geometry;
                 var properties = geoJsonData.features[i].properties;
@@ -86,10 +48,8 @@
                 var location = new Microsoft.Maps.Location(geometry.coordinates[1], geometry.coordinates[0]);
                 var marker = new Microsoft.Maps.Pushpin(location, {
                     title: properties.name || '',
-                    color: properties.sym === 'Flag, Red' ? 'red' : 'blue'  // Kolor znacznika
+                    color: properties.sym === 'Flag, Red' ? 'red' : 'blue'
                 });
-
-                // Dodaj infobox z właściwościami
                 var infoboxOptions = {
                     title: properties.name || '',
                     description: 'Time: ' + properties.time + '<br>' +
@@ -98,26 +58,24 @@
                         'Symbol: ' + properties.sym + '<br>' +
                         'Type: ' + properties.type
                 };
-                infobox = new Microsoft.Maps.Infobox(location, infoboxOptions);
+                var infobox = new Microsoft.Maps.Infobox(location, infoboxOptions);
 
                 map.entities.push(marker);
                 map.entities.push(infobox);
 
-                // Dodaj obsługę zdarzenia hover
                 Microsoft.Maps.Events.addHandler(marker, 'mouseover', function (args) {
                     infobox.setOptions({ visible: true });
                 });
 
-                // Dodaj obsługę zdarzenia mouseout (usuwa infobox po opuszczeniu znacznika)
                 Microsoft.Maps.Events.addHandler(marker, 'mouseout', function () {
                     infobox.setOptions({ visible: false });
                 });
             }
 
-            // Centruj mapę na trasie
             var boundingBox = Microsoft.Maps.LocationRect.fromLocations(coordinates);
             map.setView({ bounds: boundingBox });
         }
+
         window.onload = loadMap;
     </script>
 </body>

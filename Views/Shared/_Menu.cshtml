@@ -1,42 +1,45 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
-
-
+﻿
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <div id="menu">
-    <h4>Załadowana trasa:</h4>
-    <li>Test1</li>
     <h4 style="margin-top:10px;">Lista tras:</h4>
-    <ul>
-        <li><a onclick="changeURL('/Home/HEREMap')">Home/HEREMap</a></li>
-        <li><a onclick="changeURL('/Home/BingMap')">Home/BingMap</a></li>
-        <li><a onclick="changeURL('/Home/GoogleMaps')">Home/GoogleMaps</a></li>
-        <li><a onclick="changeURL('/Home/OpenStreet')">Home/OpenStreet</a></li>
+    <ul id="gpxTrackList">
     </ul>
 </div>
 
-
-
-
-
-
-
-
-
 <script>
-    function changeURL(url) {
-        var links = document.querySelectorAll('#menu a');
-        links.forEach(function (link) {
-            link.classList.remove('active');
+    function convertTrackGPXToGeoJSON(trackId) {
+        $.ajax({
+            type: "GET",
+            url: "/Home/ConvertTrackGPXToGeoJSON",
+            data: { trackId: trackId },
+            success: function (data) {
+                console.log("GeoJSON data:", data);
+            },
+            error: function () {
+                console.error("Błąd podczas konwersji trasy GPX na GeoJSON.");
+            }
         });
-
-        var activeLink = document.querySelector(`#menu a[href="${url}"]`);
-        if (activeLink) {
-            activeLink.classList.add('active');
-        }
-
-        window.location.href = url;
     }
+
+    function loadGpxTracks() {
+        $.ajax({
+            type: "GET",
+            url: "/Home/GetGpxTracks", 
+            success: function (data) {
+
+                $("#gpxTrackList").empty();
+
+                data.forEach(function (track) {
+                    $("#gpxTrackList").append('<li><a onclick="convertTrackGPXToGeoJSON(' + track.id + ');">' + track.name + '</a></li>');
+                });
+            },
+            error: function () {
+                console.error("Błąd podczas ładowania tras.");
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        loadGpxTracks();
+    });
 </script>

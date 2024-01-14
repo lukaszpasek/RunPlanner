@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var geoJsonData = ViewData["GeoJSONData"];
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,56 +16,16 @@
     <script>
         var map;
         var infowindow;
-
+        observeChanges(window, 'geoJsonData', loadMap);
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 16,
-                center: { lat: 52.23, lng: 21 }, // Początkowe współrzędne
+                center: { lat: 52.23, lng: 21 }, 
                 mapTypeId: 'terrain',
                 disableDefaultUI: true
             });
 
-            var geoJsonData = {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "type": "Feature",
-                        "properties": {},
-                        "geometry": {
-                            "type": "LineString",
-                            "coordinates": [
-                                [21.003457, 52.228934],
-                                [21.005293, 52.229363],
-                                [21.005444, 52.229385],
-                                [21.005202, 52.229535],
-                                [21.001717, 52.228755],
-                                [21.001738, 52.228771],
-                                [21.000634, 52.230362],
-                                [20.999054, 52.232836],
-                                [20.998282, 52.232636],
-                                [20.99804, 52.232797],
-                                [20.99804, 52.232797]
-                            ]
-                        }
-                    },
-                    {
-                        "type": "Feature",
-                        "properties": {
-                            "time": "2024-01-10T03:10:04",
-                            "name": "Finish Point",
-                            "cmt": "Additional Point",
-                            "desc": "Additional Point",
-                            "sym": "Flag, Red",
-                            "type": "Waypoint"
-                        },
-                        "geometry": {
-                            "type": "Point",
-                            "coordinates": [21.005, 52.23]
-                        }
-                    }
-                ]
-            };
-
+            var geoJsonData = @Html.Raw(Json.Serialize(geoJsonData));
             displayGeoJsonRoute(geoJsonData);
         }
 
@@ -80,7 +44,6 @@
             });
             routeLine.setMap(map);
 
-            // Dodaj znaczniki punktów z infowindowami
             for (var i = 0; i < geoJsonData.features.length; i++) {
                 var geometry = geoJsonData.features[i].geometry;
                 var properties = geoJsonData.features[i].properties;
@@ -100,7 +63,6 @@
                         'Type: ' + properties.type
                 });
 
-                // Utwórz funkcję domknięcia dla każdego markeru
                 (function (marker, infowindow) {
                     marker.addListener('mouseover', function () {
                         infowindow.open(map, marker);
@@ -112,7 +74,6 @@
                 })(marker, infowindow);
             }
 
-            // Centruj mapę na trasie
             var bounds = new google.maps.LatLngBounds();
             coordinates.forEach(function (coordinate) {
                 bounds.extend(coordinate);

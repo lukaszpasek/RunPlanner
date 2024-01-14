@@ -1,16 +1,18 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var geoJsonData = ViewData["GeoJSONData"];
+}
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <title>Display GeoJSON Route on HERE Maps</title>
-    <!-- Dodaj te linie do załadowania bibliotek HERE Maps -->
     <link rel="stylesheet" href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
     <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
     <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
     <script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
     <script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
-    <!-- Koniec sekcji załaduj biblioteki HERE Maps -->
 
 </head>
 
@@ -23,73 +25,31 @@
         var routeGroup;
         var bubble;
         var ui;
+        observeChanges(window, 'geoJsonData', loadMap);
         function initMap() {
-            // Inicjalizacja platformy HERE Maps
             var platform = new H.service.Platform({
                 'apikey': 'HzW4KiCMacI7o3NX3s90rNWk05a_raVDbvl7RuKDesI'
             });
 
-            // Utwórz mapę
             map = new H.Map(document.getElementById('map'), platform.createDefaultLayers().vector.normal.map, {
                 center: { lat: 52.23, lng: 21 },
                 zoom: 16
             });
 
-            // Dodaj interaktywność do mapy
             var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
 
-            // Dodaj kontrolki do mapy
             ui = H.ui.UI.createDefault(map, platform.createDefaultLayers());
-
-            // Utwórz grupę dla trasy
             routeGroup = new H.map.Group();
             map.addObject(routeGroup);
-
-            var geoJsonData = {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "type": "Feature",
-                        "properties": {},
-                        "geometry": {
-                            "type": "LineString",
-                            "coordinates": [
-                                [21.003457, 52.228934],
-                                [21.005293, 52.229363],
-                                [21.005444, 52.229385],
-                                [21.005202, 52.229535],
-                                [21.001717, 52.228755],
-                                [21.001738, 52.228771],
-                                [21.000634, 52.230362],
-                                [20.999054, 52.232836],
-                                [20.998282, 52.232636],
-                                [20.99804, 52.232797],
-                                [20.99804, 52.232797]
-                            ]
-                        }
-                    },
-                    {
-                        "type": "Feature",
-                        "properties": {
-                            "time": "2024-01-10T03:10:04",
-                            "name": "Finish Point",
-                            "cmt": "Additional Point",
-                            "desc": "Additional Point",
-                            "sym": "Flag, Red",
-                            "type": "Waypoint"
-                        },
-                        "geometry": {
-                            "type": "Point",
-                            "coordinates": [21.005, 52.23]
-                        }
-                    }
-                ]
-            };
-
+            var geoJsonData = @Html.Raw(Json.Serialize(geoJsonData));
             displayGeoJsonRoute(geoJsonData);
         }
 
         function displayGeoJsonRoute(geoJsonData) {
+            map.removeObjects(map.getObjects());
+
+            var routeGroup = new H.map.Group();
+
             var lineString = new H.geo.LineString();
 
             geoJsonData.features[0].geometry.coordinates.forEach(function (coord) {
@@ -101,31 +61,28 @@
             });
 
             routeGroup.addObject(routeLine);
+            map.addObject(routeGroup);
 
-            // Dodaj punkt końcowy
             var finishPoint = new H.map.Marker({
-                lat: geoJsonData.features[1].geometry.coordinates[1],
-                lng: geoJsonData.features[1].geometry.coordinates[0]
+                lat: geoJsonData.features[0].geometry.coordinates[geoJsonData.features[0].geometry.coordinates.length - 1][1],
+                lng: geoJsonData.features[0].geometry.coordinates[geoJsonData.features[0].geometry.coordinates.length - 1][0]
             });
 
-            // Dodaj efekt hover z opisem
             finishPoint.addEventListener('pointerenter', function (event) {
                 var coords = map.screenToGeo(event.currentPointer.viewportX, event.currentPointer.viewportY);
-                bubble = new H.ui.InfoBubble(coords, {
-                    content: 'Description: ' + geoJsonData.features[1].properties.desc
+                var bubble = new H.ui.InfoBubble(coords, {
+                    content: 'Description: ' + geoJsonData.features[0].properties.name
                 });
                 ui.addBubble(bubble);
             });
 
             finishPoint.addEventListener('pointerleave', function () {
-                if (bubble) {
+                ui.getBubbles().forEach(function (bubble) {
                     ui.removeBubble(bubble);
-                }
+                });
             });
 
             map.addObject(finishPoint);
-
-            // Dostosuj widok do trasy i punktu końcowego
             map.getViewModel().setLookAtData({
                 bounds: routeGroup.getBoundingBox()
             });

@@ -15,12 +15,48 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        function showPopup() {
+            $(".overlay").show();
+            $(".popup").show();
+        }
 
-    <script type="text/javascript">
-        function loadMap() {
-            // Tutaj możesz dodać kod do załadowania mapy Bing
+        function hidePopup() {
+            $(".overlay").hide();
+            $(".popup").hide();
+        }
+        function updateAndRefreshMap() {
+            // Simulate the updated GeoJSON data after calling Home/ConvertTrackGPXToGeoJSON
+            var updatedGeoJsonData = { "type": "FeatureCollection", "features": [{ "type": "Feature", "geometry": { "type": "LineString", "coordinates": [[22.4194, 37.7749], [22.4196, 37.7751], [22.4198, 37.7753], [22.42, 37.7755], [22.421, 37.776]] }, "properties": { "name": "Updated Track" } }] };
+
+            // Call the function to display the updated route
+            displayGeoJsonRoute(updatedGeoJsonData);
+        }
+        function observeChanges(obj, prop, callback) {
+            var val = obj[prop];
+            Object.defineProperty(obj, prop, {
+                get: function () {
+                    return val;
+                },
+                set: function (newVal) {
+                    val = newVal;
+                    callback();
+                }
+            });
         }
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var currentUrl = window.location.href;
+            document.getElementById('returnUrl').value = currentUrl;
+        });
+    </script>
+    <script type="text/javascript">
+        function loadMap() {
+        }
+    </script>
+
 </head>
 <body>
     <header>
@@ -33,19 +69,6 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Importuj trasę</a>
-                            @model GpxTrackViewModel
-                            <form asp-controller="Home" asp-action="AddGpxTrack" method="post">
-                                <div class="form-group">
-                                    <label asp-for="Name">Name:</label>
-                                    <input asp-for="Name" class="form-control" />
-                                    <span asp-validation-for="Name" class="text-danger"></span>
-                                </div>
-                                <!-- Dodaj inne pola formularza na podstawie potrzeb -->
-                                <button type="submit" class="btn btn-primary">Add Track</button>
-                            </form>
-                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link text-dark dropdown-toggle" href="#" id="privacyDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 API do wyświetlenia trasy
@@ -56,6 +79,37 @@
                                 <a class="dropdown-item" href="/Home/GoogleMaps">GoogleMaps</a>
                                 <a class="dropdown-item" href="/Home/OpenStreet">OpenStreet</a>
                             </div>
+                        </li>
+                        <li class="nav-item">
+                            @model GpxTrackViewModel
+
+                            <button onclick="showPopup()">Dodaj trasę</button>
+
+                            <div class="overlay" onclick="hidePopup()"></div>
+                            <div class="popup">
+                                <form method="post" action="@Url.Action("Create", "Home")" class="form-container">
+                                    <div class="form-group">
+                                        <label for="Name" class="label">Name:</label>
+                                        <input type="text" id="Name" name="Name" class="input" />
+                                        <span asp-validation-for="Name"></span> 
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="Description" class="label">Description:</label>
+                                        <input type="text" id="Description" name="Description" class="input" />
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="GpxData" class="label">GpxData:</label>
+                                        <textarea id="GpxData" name="GpxData" class="input"></textarea>
+                                        <span asp-validation-for="GpxData"></span> 
+                                    </div>
+
+                                    <input type="hidden" id="returnUrl" name="returnUrl" />
+                                    <button type="submit">Dodaj</button>
+                                </form>
+                            </div>
+
                         </li>
                     </ul>
                 </div>
